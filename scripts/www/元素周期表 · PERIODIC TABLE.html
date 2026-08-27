@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e1116">
+<title>元素周期表 · Periodic Table</title>
+<style>
+/* ===== 基础 ===== */
+* { box-sizing: border-box; }
+:root {
+  --bg: #0e1116;
+  --panel: #151a21;
+  --panel-2: #1b222c;
+  --line: #27303d;
+  --text: #eef2f7;
+  --text-dim: #8b95a3;
+  --cell: 58px;
+  --gap: 5px;
+}
+html { -webkit-text-size-adjust: 100%; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+/* 实验室坐标纸纹理背景 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 46px 46px;
+}
+button { font-family: inherit; color: inherit; }
+button:focus-visible { outline: 2px solid #4cddf3; outline-offset: 2px; }
+
+/* ===== 布局 ===== */
+.app { max-width: 1320px; margin: 0 auto; padding: 18px 16px calc(40px + env(safe-area-inset-bottom)); }
+.hero { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 20px; margin-bottom: 14px; }
+.hero h1 {
+  margin: 0;
+  font-size: clamp(22px, 3.4vw, 32px);
+  letter-spacing: .04em;
+  font-weight: 700;
+}
+.hero h1 .zh { text-shadow: 0 0 18px rgba(76,221,243,.45); }
+.hero .sub { margin: 4px 0 0; color: var(--text-dim); font-size: 13px; letter-spacing: .12em; }
+
+/* ===== 控制条 ===== */
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.search {
+  display: flex; align-items: center; gap: 8px;
+  flex: 1 1 220px; min-width: 160px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 12px; transition: border-color .2s;
+}
+.search:focus-within { border-color: #4cddf3; }
+.search svg { width: 16px; height: 16px; stroke: var(--text-dim); flex: none; }
+.search input {
+  flex: 1; min-width: 0; background: transparent; border: 0; outline: 0;
+  color: var(--text); font-size: 14px;
+}
+.search input::placeholder { color: #5b6572; }
+.search .count { flex: none; font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+.zbtn {
+  flex: none; height: 34px; padding: 0 11px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  font-size: 12px; color: var(--text-dim); cursor: pointer; transition: .18s;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.zbtn:hover { color: var(--text); border-color: #3d4a5c; }
+.zbtn:active { transform: scale(.95); }
+.zbtn svg { width: 14px; height: 14px; stroke: currentColor; }
+
+/* ===== 图例 ===== */
+.legend { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--panel); color: var(--text-dim);
+  font-size: 12px; cursor: pointer; transition: .18s; user-select: none;
+}
+.chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); box-shadow: 0 0 7px var(--c); }
+.chip:hover { border-color: var(--c); color: var(--c); }
+.chip.active { border-color: var(--c); color: var(--c); background: rgba(255,255,255,.045); box-shadow: 0 0 12px color-mix(in srgb, var(--c) 28%, transparent); }
+
+/* ===== 周期表 ===== */
+.table-wrap {
+  overflow-x: auto; overflow-y: hidden;
+  padding: 2px 2px 10px;
+  scrollbar-width: thin; scrollbar-color: #33404f transparent;
+  -webkit-overflow-scrolling: touch;
+}
+.periodic-table {
+  display: grid;
+  grid-template-columns: repeat(18, var(--cell));
+  grid-auto-rows: var(--cell);
+  grid-auto-flow: row;
+  gap: var(--gap);
+  width: max-content;
+  min-width: 100%;
+  margin: 0 auto;
+}
+.cell {
+  position: relative;
+  font-size: var(--cell);
+  border: 1.5px solid var(--c);
+  border-radius: 4px;
+  background: rgba(17,21,27,.9);
+  color: var(--c);
+  text-shadow: 0 0 9px color-mix(in srgb, var(--c) 75%, transparent);
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .04em;
+  transition: transform .14s ease, box-shadow .2s ease, opacity .2s ease, border-color .2s ease;
+  user-select: none; -webkit-user-select: none;
+  touch-action: manipulation;
+  overflow: hidden;
+}
+.cell:hover { box-shadow: 0 0 16px color-mix(in srgb, var(--c) 50%, transparent), inset 0 0 12px color-mix(in srgb, var(--c) 16%, transparent); z-index: 2; }
+.cell:active { transform: scale(.9); }
+.cell .num { position: absolute; left: .1em; top: .08em; font-size: .14em; opacity: .78; line-height: 1; font-variant-numeric: tabular-nums; }
+.cell .sym { font-size: .34em; font-weight: 600; line-height: 1; }
+.cell .name { font-size: .14em; opacity: .85; line-height: 1.1; white-space: nowrap; }
+.cell .mass { position: absolute; left: 0; right: 0; bottom: .06em; text-align: center; font-size: .12em; opacity: .72; font-variant-numeric: tabular-nums; }
+.cell .econf { display: none; }
+
+/* 占位格（镧系/锕系入口） */
+.cell.placeholder {
+  border-style: dashed;
+  background: transparent;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .05em;
+}
+.cell.placeholder:hover { box-shadow: 0 0 16px color-mix(in srgb, var(--c) 40%, transparent); }
+.cell.placeholder .ph-sym { font-size: .3em; font-weight: 600; }
+.cell.placeholder .ph-name { font-size: .12em; opacity: .8; }
+
+/* 搜索/筛选状态 */
+.cell.hit { box-shadow: 0 0 18px var(--c), inset 0 0 10px color-mix(in srgb, var(--c) 25%, transparent); }
+.cell.dim-search, .cell.cat-dim { opacity: .16; filter: saturate(.4); }
+.cell.dim-search:hover, .cell.cat-dim:hover { opacity: .3; }
+
+/* ===== 详情弹窗 ===== */
+dialog.modal { border: 0; padding: 0; background: transparent; width: min(600px, calc(100vw - 24px)); margin: auto; }
+dialog.modal::backdrop { background: rgba(8,10,14,.74); backdrop-filter: blur(5px); }
+.modal-card {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid #2c3746;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.02) inset;
+}
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--line);
+}
+.modal-head .cat-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-dim);
+}
+.modal-head .cat-tag .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
+.close {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--text-dim);
+  font-size: 18px; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  transition: .18s;
+}
+.close:hover { color: var(--text); border-color: #3d4a5c; }
+.modal-body { display: flex; gap: 22px; padding: 20px 18px 16px; }
+/* 原子模型 */
+.atom-box { position: relative; flex: none; width: 240px; height: 240px; margin: 0 auto; max-width: 100%; aspect-ratio: 1; }
+.nucleus {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: 44px; height: 44px; border-radius: 50%;
+  background: color-mix(in srgb, var(--c) 24%, #10151b);
+  border: 1.5px solid var(--c);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--c) 70%, transparent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 700; color: var(--c); text-shadow: 0 0 10px var(--c);
+  z-index: 2;
+}
+.orbit { position: absolute; border: 1px solid var(--c); border-radius: 50%; opacity: .32; animation: orbit-spin linear infinite; }
+@keyframes orbit-spin { to { transform: rotate(360deg); } }
+.electron {
+  position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3.5px;
+  border-radius: 50%; background: var(--c);
+  box-shadow: 0 0 8px var(--c);
+}
+/* 信息 */
+.info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.info .big-sym { font-size: clamp(40px, 9vw, 60px); font-weight: 700; line-height: 1; color: var(--c); text-shadow: 0 0 22px color-mix(in srgb, var(--c) 65%, transparent); }
+.info h2 { margin: 6px 0 12px; font-size: 20px; font-weight: 600; }
+.info h2 .zh { color: #52ee61; text-shadow: 0 0 10px rgba(82,238,97,.5); }
+.info h2 .en { color: var(--text-dim); font-weight: 400; font-size: 15px; margin-left: 8px; }
+.info dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; font-size: 13px; }
+.info dl > div { display: contents; }
+.info dt { color: var(--text-dim); white-space: nowrap; }
+.info dd { margin: 0; font-variant-numeric: tabular-nums; word-break: break-all; color: #52ee61; text-shadow: 0 0 8px rgba(82,238,97,.45); }
+.info dd .conf-num { color: #52ee61; }
+.modal-nav {
+  display: flex; gap: 10px; padding: 0 18px 18px;
+}
+.modal-nav button {
+  flex: 1; padding: 10px 0; border-radius: 10px;
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--text-dim);
+  font-size: 13px; cursor: pointer; transition: .18s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.modal-nav button:hover { color: var(--text); border-color: #3d4a5c; }
+.modal-nav svg { width: 14px; height: 14px; stroke: currentColor; }
+.empty {
+  padding: 30px; text-align: center; color: var(--text-dim); font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  :root { --cell: 45px; }
+  .modal-body { flex-direction: column; gap: 6px; }
+  .info { text-align: center; align-items: center; }
+  .info dl { grid-template-columns: 1fr; gap: 2px; text-align: center; }
+  .info dt { white-space: normal; }
+}
+@media (max-width: 420px) {
+  :root { --cell: 43px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hero">
+    <div>
+      <h1><span class="zh">元素周期表</span> · PERIODIC TABLE</h1>
+      <p class="sub">118 种化学元素 · LuoQi</p>
+    </div>
+  </header>
+
+  <div class="controls">
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="search" type="search" placeholder="搜索元素（符号 / 名称 / 原子序数）" autocomplete="off" enterkeyhint="search">
+      <span class="count" id="search-count"></span>
+    </label>
+    <button class="zbtn" id="zoom-out" title="缩小格子" aria-label="缩小">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>
+    </button>
+    <button class="zbtn" id="zoom-in" title="放大格子" aria-label="放大">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button class="zbtn" id="zoom-fit" title="适应屏幕宽度" aria-label="适应屏幕宽度">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"/></svg>
+    </button>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="table-wrap" id="table-wrap">
+    <div class="periodic-table" id="ptable"></div>
+  </div>
+</div>
+
+<dialog class="modal" id="modal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <span class="cat-tag" id="m-cat-tag"><span class="dot"></span><span id="m-cat-name"></span></span>
+      <button class="close" id="m-close" aria-label="关闭">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="atom-box" id="atom-box"></div>
+      <div class="info">
+        <div class="big-sym" id="m-sym"></div>
+        <h2 id="m-name"></h2>
+        <dl>
+          <div><dt>原子序数</dt><dd id="m-num"></dd></div>
+          <div><dt>相对原子质量</dt><dd id="m-mass"></dd></div>
+          <div><dt>电子排布</dt><dd id="m-conf"></dd></div>
+          <div><dt>周期 · 族</dt><dd id="m-period"></dd></div>
+        </dl>
+      </div>
+    </div>
+    <nav class="modal-nav">
+      <button id="m-prev">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        上一个
+      </button>
+      <button id="m-next">
+        下一个
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+    </nav>
+  </div>
+</dialog>
+
+<script>
+/* ===== 数据 ===== */
+const ELEMENTS = [{"num":1,"sym":"H","nameEn":"Hydrogen","nameZh":"氢","mass":"1.008","cat":"other-nonmetal","col":1,"row":1,"econfig":[1]},{"num":2,"sym":"He","nameEn":"Helium","nameZh":"氦","mass":"4.0026","cat":"noble-gas","col":18,"row":1,"econfig":[2]},{"num":3,"sym":"Li","nameEn":"Lithium","nameZh":"锂","mass":"6.94","cat":"alkali-metal","col":1,"row":2,"econfig":[2,1]},{"num":4,"sym":"Be","nameEn":"Beryllium","nameZh":"铍","mass":"9.0122","cat":"alkaline-earth-metal","col":2,"row":2,"econfig":[2,2]},{"num":5,"sym":"B","nameEn":"Boron","nameZh":"硼","mass":"10.81","cat":"metalloid","col":13,"row":2,"econfig":[2,3]},{"num":6,"sym":"C","nameEn":"Carbon","nameZh":"碳","mass":"12.011","cat":"other-nonmetal","col":14,"row":2,"econfig":[2,4]},{"num":7,"sym":"N","nameEn":"Nitrogen","nameZh":"氮","mass":"14.007","cat":"other-nonmetal","col":15,"row":2,"econfig":[2,5]},{"num":8,"sym":"O","nameEn":"Oxygen","nameZh":"氧","mass":"15.999","cat":"other-nonmetal","col":16,"row":2,"econfig":[2,6]},{"num":9,"sym":"F","nameEn":"Flourine","nameZh":"氟","mass":"18.998","cat":"other-nonmetal","col":17,"row":2,"econfig":[2,7]},{"num":10,"sym":"Ne","nameEn":"Neon","nameZh":"氖","mass":"20.18","cat":"noble-gas","col":18,"row":2,"econfig":[2,8]},{"num":11,"sym":"Na","nameEn":"Sodium","nameZh":"钠","mass":"22.99","cat":"alkali-metal","col":1,"row":3,"econfig":[2,8,1]},{"num":12,"sym":"Mg","nameEn":"Magnesium","nameZh":"镁","mass":"24.305","cat":"alkaline-earth-metal","col":2,"row":3,"econfig":[2,8,2]},{"num":13,"sym":"Al","nameEn":"Aluminium","nameZh":"铝","mass":"26.982","cat":"post-transition-metal","col":13,"row":3,"econfig":[2,8,3]},{"num":14,"sym":"Si","nameEn":"Silicon","nameZh":"硅","mass":"28.085","cat":"metalloid","col":14,"row":3,"econfig":[2,8,4]},{"num":15,"sym":"P","nameEn":"Phosphorus","nameZh":"磷","mass":"30.974","cat":"other-nonmetal","col":15,"row":3,"econfig":[2,8,5]},{"num":16,"sym":"S","nameEn":"Sulfur","nameZh":"硫","mass":"32.06","cat":"other-nonmetal","col":16,"row":3,"econfig":[2,8,6]},{"num":17,"sym":"Cl","nameEn":"Chlorine","nameZh":"氯","mass":"35.45","cat":"other-nonmetal","col":17,"row":3,"econfig":[2,8,7]},{"num":18,"sym":"Ar","nameEn":"Argon","nameZh":"氩","mass":"39.948","cat":"noble-gas","col":18,"row":3,"econfig":[2,8,8]},{"num":19,"sym":"K","nameEn":"Potassium","nameZh":"钾","mass":"39.098","cat":"alkali-metal","col":1,"row":4,"econfig":[2,8,8,1]},{"num":20,"sym":"Ca","nameEn":"Calcium","nameZh":"钙","mass":"40.078","cat":"alkaline-earth-metal","col":2,"row":4,"econfig":[2,8,8,2]},{"num":21,"sym":"Sc","nameEn":"Scandium","nameZh":"钪","mass":"44.956","cat":"transition-metal","col":3,"row":4,"econfig":[2,8,9,2]},{"num":22,"sym":"Ti","nameEn":"Titanium","nameZh":"钛","mass":"47.867","cat":"transition-metal","col":4,"row":4,"econfig":[2,8,10,2]},{"num":23,"sym":"V","nameEn":"Vanadium","nameZh":"钒","mass":"50.942","cat":"transition-metal","col":5,"row":4,"econfig":[2,8,11,2]},{"num":24,"sym":"Cr","nameEn":"Chromium","nameZh":"铬","mass":"51.996","cat":"transition-metal","col":6,"row":4,"econfig":[2,8,13,1]},{"num":25,"sym":"Mn","nameEn":"Manganese","nameZh":"锰","mass":"54.938","cat":"transition-metal","col":7,"row":4,"econfig":[2,8,13,2]},{"num":26,"sym":"Fe","nameEn":"Iron","nameZh":"铁","mass":"55.845","cat":"transition-metal","col":8,"row":4,"econfig":[2,8,14,2]},{"num":27,"sym":"Co","nameEn":"Cobalt","nameZh":"钴","mass":"58.933","cat":"transition-metal","col":9,"row":4,"econfig":[2,8,15,2]},{"num":28,"sym":"Ni","nameEn":"Nickel","nameZh":"镍","mass":"58.693","cat":"transition-metal","col":10,"row":4,"econfig":[2,8,16,2]},{"num":29,"sym":"Cu","nameEn":"Copper","nameZh":"铜","mass":"63.546","cat":"transition-metal","col":11,"row":4,"econfig":[2,8,18,1]},{"num":30,"sym":"Zn","nameEn":"Zinc","nameZh":"锌","mass":"65.38","cat":"transition-metal","col":12,"row":4,"econfig":[2,8,18,2]},{"num":31,"sym":"Ga","nameEn":"Gallium","nameZh":"镓","mass":"69.723","cat":"post-transition-metal","col":13,"row":4,"econfig":[2,8,18,3]},{"num":32,"sym":"Ge","nameEn":"Germanium","nameZh":"锗","mass":"72.63","cat":"metalloid","col":14,"row":4,"econfig":[2,8,18,4]},{"num":33,"sym":"As","nameEn":"Arsenic","nameZh":"砷","mass":"74.922","cat":"metalloid","col":15,"row":4,"econfig":[2,8,18,5]},{"num":34,"sym":"Se","nameEn":"Selenium","nameZh":"硒","mass":"78.971","cat":"other-nonmetal","col":16,"row":4,"econfig":[2,8,18,6]},{"num":35,"sym":"Br","nameEn":"Bromine","nameZh":"溴","mass":"79.904","cat":"other-nonmetal","col":17,"row":4,"econfig":[2,8,18,7]},{"num":36,"sym":"Kr","nameEn":"Krypton","nameZh":"氪","mass":"83.798","cat":"noble-gas","col":18,"row":4,"econfig":[2,8,18,8]},{"num":37,"sym":"Rb","nameEn":"Rubidium","nameZh":"铷","mass":"85.468","cat":"alkali-metal","col":1,"row":5,"econfig":[2,8,18,8,1]},{"num":38,"sym":"Sr","nameEn":"Strontium","nameZh":"锶","mass":"87.62","cat":"alkaline-earth-metal","col":2,"row":5,"econfig":[2,8,18,8,2]},{"num":39,"sym":"Y","nameEn":"Yttrium","nameZh":"钇","mass":"88.906","cat":"transition-metal","col":3,"row":5,"econfig":[2,8,18,9,2]},{"num":40,"sym":"Zr","nameEn":"Zirconium","nameZh":"锆","mass":"91.224","cat":"transition-metal","col":4,"row":5,"econfig":[2,8,18,10,2]},{"num":41,"sym":"Nb","nameEn":"Niobium","nameZh":"铌","mass":"92.906","cat":"transition-metal","col":5,"row":5,"econfig":[2,8,18,12,1]},{"num":42,"sym":"Mo","nameEn":"Molybdenum","nameZh":"钼","mass":"95.95","cat":"transition-metal","col":6,"row":5,"econfig":[2,8,18,13,1]},{"num":43,"sym":"Tc","nameEn":"Technetium","nameZh":"锝","mass":"(98)","cat":"transition-metal","col":7,"row":5,"econfig":[2,8,18,13,2]},{"num":44,"sym":"Ru","nameEn":"Ruthenium","nameZh":"钌","mass":"101.07","cat":"transition-metal","col":8,"row":5,"econfig":[2,8,18,15,1]},{"num":45,"sym":"Rh","nameEn":"Rhodium","nameZh":"铑","mass":"102.91","cat":"transition-metal","col":9,"row":5,"econfig":[2,8,18,16,1]},{"num":46,"sym":"Pd","nameEn":"Palladium","nameZh":"钯","mass":"106.42","cat":"transition-metal","col":10,"row":5,"econfig":[2,8,18,18]},{"num":47,"sym":"Ag","nameEn":"Silver","nameZh":"银","mass":"107.87","cat":"transition-metal","col":11,"row":5,"econfig":[2,8,18,18,1]},{"num":48,"sym":"Cd","nameEn":"Cadmium","nameZh":"镉","mass":"112.41","cat":"transition-metal","col":12,"row":5,"econfig":[2,8,18,18,2]},{"num":49,"sym":"In","nameEn":"Indium","nameZh":"铟","mass":"114.82","cat":"post-transition-metal","col":13,"row":5,"econfig":[2,8,18,18,3]},{"num":50,"sym":"Sn","nameEn":"Tin","nameZh":"锡","mass":"118.711","cat":"post-transition-metal","col":14,"row":5,"econfig":[2,8,18,18,4]},{"num":51,"sym":"Sb","nameEn":"Antimony","nameZh":"锑","mass":"121.76","cat":"metalloid","col":15,"row":5,"econfig":[2,8,18,18,5]},{"num":52,"sym":"Te","nameEn":"Tellurium","nameZh":"碲","mass":"127.6","cat":"metalloid","col":16,"row":5,"econfig":[2,8,18,18,6]},{"num":53,"sym":"I","nameEn":"Iodine","nameZh":"碘","mass":"126.9","cat":"other-nonmetal","col":17,"row":5,"econfig":[2,8,18,18,7]},{"num":54,"sym":"Xe","nameEn":"Xenon","nameZh":"氙","mass":"131.29","cat":"noble-gas","col":18,"row":5,"econfig":[2,8,18,18,8]},{"num":55,"sym":"Cs","nameEn":"Caesium","nameZh":"铯","mass":"132.91","cat":"alkali-metal","col":1,"row":6,"econfig":[2,8,18,18,8,1]},{"num":56,"sym":"Ba","nameEn":"Barium","nameZh":"钡","mass":"137.33","cat":"alkaline-earth-metal","col":2,"row":6,"econfig":[2,8,18,18,8,2]},{"num":57,"sym":"La","nameEn":"Lanthanum","nameZh":"镧","mass":"138.91","cat":"lanthanoid","col":4,"row":9,"econfig":[2,8,18,18,9,2]},{"num":58,"sym":"Ce","nameEn":"Cerium","nameZh":"铈","mass":"140.12","cat":"lanthanoid","col":5,"row":9,"econfig":[2,8,18,19,9,2]},{"num":59,"sym":"Pr","nameEn":"Praseodymium","nameZh":"镨","mass":"140.91","cat":"lanthanoid","col":6,"row":9,"econfig":[2,8,18,21,8,2]},{"num":60,"sym":"Nd","nameEn":"Neodymium","nameZh":"钕","mass":"144.24","cat":"lanthanoid","col":7,"row":9,"econfig":[2,8,18,22,8,2]},{"num":61,"sym":"Pm","nameEn":"Promethium","nameZh":"钷","mass":"144.24","cat":"lanthanoid","col":8,"row":9,"econfig":[2,8,18,23,8,2]},{"num":62,"sym":"Sm","nameEn":"Samarium","nameZh":"钐","mass":"150.36","cat":"lanthanoid","col":9,"row":9,"econfig":[2,8,18,24,8,2]},{"num":63,"sym":"Eu","nameEn":"Europium","nameZh":"铕","mass":"151.96","cat":"lanthanoid","col":10,"row":9,"econfig":[2,8,18,25,8,2]},{"num":64,"sym":"Gd","nameEn":"Gadolinium","nameZh":"钆","mass":"157.25","cat":"lanthanoid","col":11,"row":9,"econfig":[2,8,18,25,9,2]},{"num":65,"sym":"Tb","nameEn":"Terbium","nameZh":"铽","mass":"158.93","cat":"lanthanoid","col":12,"row":9,"econfig":[2,8,18,27,8,2]},{"num":66,"sym":"Dy","nameEn":"Dysprosium","nameZh":"镝","mass":"162.5","cat":"lanthanoid","col":13,"row":9,"econfig":[2,8,18,28,8,2]},{"num":67,"sym":"Ho","nameEn":"Holmium","nameZh":"钬","mass":"164.93","cat":"lanthanoid","col":14,"row":9,"econfig":[2,8,18,29,8,2]},{"num":68,"sym":"Er","nameEn":"Erbium","nameZh":"铒","mass":"167.26","cat":"lanthanoid","col":15,"row":9,"econfig":[2,8,18,30,8,2]},{"num":69,"sym":"Tm","nameEn":"Thulium","nameZh":"铥","mass":"168.93","cat":"lanthanoid","col":16,"row":9,"econfig":[2,8,18,31,8,2]},{"num":70,"sym":"Yb","nameEn":"Ytterbium","nameZh":"镱","mass":"173.05","cat":"lanthanoid","col":17,"row":9,"econfig":[2,8,18,32,8,2]},{"num":71,"sym":"Lu","nameEn":"Lutetium","nameZh":"镥","mass":"174.97","cat":"lanthanoid","col":18,"row":9,"econfig":[2,8,18,32,9,2]},{"num":72,"sym":"Hf","nameEn":"Hafnium","nameZh":"铪","mass":"178.49","cat":"transition-metal","col":4,"row":6,"econfig":[2,8,18,32,10,2]},{"num":73,"sym":"Ta","nameEn":"Tantalum","nameZh":"钽","mass":"180.95","cat":"transition-metal","col":5,"row":6,"econfig":[2,8,18,32,11,2]},{"num":74,"sym":"W","nameEn":"Tungsten","nameZh":"钨","mass":"183.84","cat":"transition-metal","col":6,"row":6,"econfig":[2,8,18,32,12,2]},{"num":75,"sym":"Re","nameEn":"Rhenium","nameZh":"铼","mass":"186.21","cat":"transition-metal","col":7,"row":6,"econfig":[2,8,18,32,13,2]},{"num":76,"sym":"Os","nameEn":"Osmium","nameZh":"锇","mass":"190.23","cat":"transition-metal","col":8,"row":6,"econfig":[2,8,18,32,14,2]},{"num":77,"sym":"Ir","nameEn":"Iridium","nameZh":"铱","mass":"192.22","cat":"transition-metal","col":9,"row":6,"econfig":[2,8,18,32,15,2]},{"num":78,"sym":"Pt","nameEn":"Platinum","nameZh":"铂","mass":"195.08","cat":"transition-metal","col":10,"row":6,"econfig":[2,8,18,32,17,1]},{"num":79,"sym":"Au","nameEn":"Gold","nameZh":"金","mass":"196.97","cat":"transition-metal","col":11,"row":6,"econfig":[2,8,18,32,18,1]},{"num":80,"sym":"Hg","nameEn":"Mercury","nameZh":"汞","mass":"200.59","cat":"transition-metal","col":12,"row":6,"econfig":[2,8,18,32,18,2]},{"num":81,"sym":"Tl","nameEn":"Thallium","nameZh":"铊","mass":"204.38","cat":"post-transition-metal","col":13,"row":6,"econfig":[2,8,18,32,18,3]},{"num":82,"sym":"Pb","nameEn":"Lead","nameZh":"铅","mass":"207.2","cat":"post-transition-metal","col":14,"row":6,"econfig":[2,8,18,32,18,4]},{"num":83,"sym":"Bi","nameEn":"Bismuth","nameZh":"铋","mass":"208.98","cat":"post-transition-metal","col":15,"row":6,"econfig":[2,8,18,32,18,5]},{"num":84,"sym":"Po","nameEn":"Polonium","nameZh":"钋","mass":"(209)","cat":"post-transition-metal","col":16,"row":6,"econfig":[2,8,18,32,18,6]},{"num":85,"sym":"At","nameEn":"Astatine","nameZh":"砹","mass":"(210)","cat":"metalloid","col":17,"row":6,"econfig":[2,8,18,32,18,7]},{"num":86,"sym":"Rn","nameEn":"Radon","nameZh":"氡","mass":"(222)","cat":"noble-gas","col":18,"row":6,"econfig":[2,8,18,32,18,8]},{"num":87,"sym":"Fr","nameEn":"Francium","nameZh":"钫","mass":"(223)","cat":"alkali-metal","col":1,"row":7,"econfig":[2,8,18,32,18,8,1]},{"num":88,"sym":"Ra","nameEn":"Radium","nameZh":"镭","mass":"(226)","cat":"alkaline-earth-metal","col":2,"row":7,"econfig":[2,8,18,32,18,8,2]},{"num":89,"sym":"Ac","nameEn":"Actinium","nameZh":"锕","mass":"(227)","cat":"actinoid","col":4,"row":10,"econfig":[2,8,18,32,18,9,2]},{"num":90,"sym":"Th","nameEn":"Thorium","nameZh":"钍","mass":"232.04","cat":"actinoid","col":5,"row":10,"econfig":[2,8,18,32,18,10,2]},{"num":91,"sym":"Pa","nameEn":"Protactinium","nameZh":"镤","mass":"231.04","cat":"actinoid","col":6,"row":10,"econfig":[2,8,18,32,20,9,2]},{"num":92,"sym":"U","nameEn":"Uranium","nameZh":"铀","mass":"238.03","cat":"actinoid","col":7,"row":10,"econfig":[2,8,18,32,21,9,2]},{"num":93,"sym":"Np","nameEn":"Neptunium","nameZh":"镎","mass":"(237)","cat":"actinoid","col":8,"row":10,"econfig":[2,8,18,32,22,9,2]},{"num":94,"sym":"Pu","nameEn":"Plutonium","nameZh":"钚","mass":"(244)","cat":"actinoid","col":9,"row":10,"econfig":[2,8,18,32,24,8,2]},{"num":95,"sym":"Am","nameEn":"Americium","nameZh":"镅","mass":"(243)","cat":"actinoid","col":10,"row":10,"econfig":[2,8,18,32,25,8,2]},{"num":96,"sym":"Cm","nameEn":"Curium","nameZh":"锔","mass":"(247)","cat":"actinoid","col":11,"row":10,"econfig":[2,8,18,32,25,9,2]},{"num":97,"sym":"Bk","nameEn":"Berkelium","nameZh":"锫","mass":"(247)","cat":"actinoid","col":12,"row":10,"econfig":[2,8,18,32,27,8,2]},{"num":98,"sym":"Cf","nameEn":"Californium","nameZh":"锎","mass":"(251)","cat":"actinoid","col":13,"row":10,"econfig":[2,8,18,32,28,8,2]},{"num":99,"sym":"Es","nameEn":"Einsteinium","nameZh":"锿","mass":"(252)","cat":"actinoid","col":14,"row":10,"econfig":[2,8,18,32,29,8,2]},{"num":100,"sym":"Fm","nameEn":"Fermium","nameZh":"镄","mass":"(257)","cat":"actinoid","col":15,"row":10,"econfig":[2,8,18,32,30,8,2]},{"num":101,"sym":"Md","nameEn":"Mendelevium","nameZh":"钔","mass":"(258)","cat":"actinoid","col":16,"row":10,"econfig":[2,8,18,32,31,8,2]},{"num":102,"sym":"No","nameEn":"Nobelium","nameZh":"锘","mass":"(259)","cat":"actinoid","col":17,"row":10,"econfig":[2,8,18,32,32,8,2]},{"num":103,"sym":"Lr","nameEn":"Lawrencium","nameZh":"铹","mass":"(266)","cat":"actinoid","col":18,"row":10,"econfig":[2,8,18,32,32,8,3]},{"num":104,"sym":"Rf","nameEn":"Rutherfordium","nameZh":"𬬻","mass":"(267)","cat":"transition-metal","col":4,"row":7,"econfig":[2,8,18,32,32,10,2]},{"num":105,"sym":"Db","nameEn":"Dubnium","nameZh":"𬭊","mass":"(268)","cat":"transition-metal","col":5,"row":7,"econfig":[2,8,18,32,32,11,2]},{"num":106,"sym":"Sg","nameEn":"Seaborgium","nameZh":"𬭳","mass":"(269)","cat":"transition-metal","col":6,"row":7,"econfig":[2,8,18,32,32,12,2]},{"num":107,"sym":"Bh","nameEn":"Bohrium","nameZh":"𬭛","mass":"(270)","cat":"transition-metal","col":7,"row":7,"econfig":[2,8,18,32,32,13,2]},{"num":108,"sym":"Hs","nameEn":"Hassium","nameZh":"𬭶","mass":"(277)","cat":"transition-metal","col":8,"row":7,"econfig":[2,8,18,32,32,14,2]},{"num":109,"sym":"Mt","nameEn":"Meitnerium","nameZh":"鿏","mass":"(278)","cat":"unknown","col":9,"row":7,"econfig":[2,8,18,32,32,15,2]},{"num":110,"sym":"Ds","nameEn":"Darmstadtium","nameZh":"𫟼","mass":"(281)","cat":"unknown","col":10,"row":7,"econfig":[2,8,18,32,32,17,1]},{"num":111,"sym":"Rg","nameEn":"Roentgenium","nameZh":"𬬭","mass":"(282)","cat":"unknown","col":11,"row":7,"econfig":[2,8,18,32,32,17,2]},{"num":112,"sym":"Cn","nameEn":"Copernicium","nameZh":"鿔","mass":"(282)","cat":"transition-metal","col":12,"row":7,"econfig":[2,8,18,32,32,18,2]},{"num":113,"sym":"Nh","nameEn":"Nihonium","nameZh":"鿭","mass":"(286)","cat":"unknown","col":13,"row":7,"econfig":[2,8,18,32,32,18,3]},{"num":114,"sym":"Fl","nameEn":"Flerovium","nameZh":"𫓧","mass":"(289)","cat":"post-transition-metal","col":14,"row":7,"econfig":[2,8,18,32,32,18,4]},{"num":115,"sym":"Mc","nameEn":"Moscovium","nameZh":"镆","mass":"(290)","cat":"unknown","col":15,"row":7,"econfig":[2,8,18,32,32,18,5]},{"num":116,"sym":"Lv","nameEn":"Livermorium","nameZh":"𫟷","mass":"(293)","cat":"unknown","col":16,"row":7,"econfig":[2,8,18,32,32,18,6]},{"num":117,"sym":"Ts","nameEn":"Tennessine","nameZh":"鿬","mass":"(294)","cat":"unknown","col":17,"row":7,"econfig":[2,8,18,32,32,18,7]},{"num":118,"sym":"Og","nameEn":"Oganesson","nameZh":"鿫","mass":"(294)","cat":"unknown","col":18,"row":7,"econfig":[2,8,18,32,32,18,8]}];
+const CATS = {
+  'alkali-metal':          { name: '碱金属',     color: '#ecbe59' },
+  'alkaline-earth-metal':  { name: '碱土金属',   color: '#dee955' },
+  'lanthanoid':            { name: '镧系',       color: '#ec77a3' },
+  'actinoid':              { name: '锕系',       color: '#c686cc' },
+  'transition-metal':      { name: '过渡金属',   color: '#fd8572' },
+  'post-transition-metal': { name: '后过渡金属', color: '#4cddf3' },
+  'metalloid':             { name: '类金属',     color: '#3aefb6' },
+  'other-nonmetal':        { name: '其他非金属', color: '#52ee61' },
+  'noble-gas':             { name: '稀有气体',   color: '#759fff' },
+  'unknown':               { name: '未知性质',   color: '#9aa4b2' }
+};
+const GROUP_ZH = { 1:'ⅠA',2:'ⅡA',3:'ⅢB',4:'ⅣB',5:'ⅤB',6:'ⅥB',7:'ⅦB',8:'Ⅷ',9:'Ⅷ',10:'Ⅷ',11:'ⅠB',12:'ⅡB',13:'ⅢA',14:'ⅣA',15:'ⅤA',16:'ⅥA',17:'ⅦA',18:'0' };
+
+const $ = (s) => document.querySelector(s);
+const table = $('#ptable');
+const wrap = $('#table-wrap');
+const cells = {};
+
+/* ===== 构建周期表 ===== */
+function buildTable() {
+  ELEMENTS.forEach(el => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'cell';
+    b.dataset.num = el.num;
+    b.style.setProperty('--c', CATS[el.cat].color);
+    b.style.gridRow = el.row;
+    b.style.gridColumn = el.col;
+    b.setAttribute('aria-label', el.sym + ' ' + el.nameZh + '，原子序数 ' + el.num);
+    b.innerHTML =
+      '<span class="num">' + el.num + '</span>' +
+      '<span class="sym">' + el.sym + '</span>' +
+      '<span class="name" data-en="' + el.nameEn + '">' + el.nameZh + '</span>' +
+      '<span class="mass">' + el.mass + '</span>';
+    b.addEventListener('click', () => openDetail(el.num));
+    table.appendChild(b);
+    cells[el.num] = b;
+  });
+  // 占位格：镧系 / 锕系入口
+  addPlaceholder(6, 3, 'La', '镧系 57–71', CATS.lanthanoid.color, 'lanthanoid');
+  addPlaceholder(7, 3, 'Ac', '锕系 89–103', CATS.actinoid.color, 'actinoid');
+}
+function addPlaceholder(row, col, sym, name, color, cat) {
+  const d = document.createElement('div');
+  d.className = 'cell placeholder';
+  d.style.setProperty('--c', color);
+  d.style.gridRow = row;
+  d.style.gridColumn = col;
+  d.innerHTML = '<span class="ph-sym">' + sym + '</span><span class="ph-name">' + name + '</span>';
+  d.addEventListener('click', () => {
+    const targetRow = cat === 'lanthanoid' ? 9 : 10;
+    const first = ELEMENTS.find(e => e.row === targetRow);
+    if (first && cells[first.num]) scrollToCell(cells[first.num], true);
+    highlightCat(cat);
+  });
+  table.appendChild(d);
+}
+
+/* ===== 图例 ===== */
+const legend = $('#legend');
+const chips = [];
+function buildLegend() {
+  Object.keys(CATS).forEach(cat => {
+    const c = CATS[cat];
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.dataset.cat = cat;
+    b.style.setProperty('--c', c.color);
+    b.innerHTML = '<span class="dot"></span>' + c.name;
+    b.addEventListener('click', () => {
+      activeCat = activeCat === cat ? null : cat;
+      applyCatFilter();
+    });
+    legend.appendChild(b);
+    chips.push(b);
+  });
+}
+let activeCat = null;
+function applyCatFilter() {
+  ELEMENTS.forEach(el => {
+    cells[el.num].classList.toggle('cat-dim', !!activeCat && el.cat !== activeCat);
+  });
+  chips.forEach(ch => ch.classList.toggle('active', ch.dataset.cat === activeCat));
+}
+function highlightCat(cat) {
+  activeCat = activeCat === cat ? null : cat;
+  applyCatFilter();
+}
+
+/* ===== 缩放 ===== */
+let cellSize = 58;
+function setCellSize(v) {
+  cellSize = Math.max(18, Math.min(84, v));
+  document.documentElement.style.setProperty('--cell', cellSize + 'px');
+}
+$('#zoom-in').addEventListener('click', () => setCellSize(cellSize + 4));
+$('#zoom-out').addEventListener('click', () => setCellSize(cellSize - 4));
+$('#zoom-fit').addEventListener('click', () => {
+  const avail = wrap.clientWidth;
+  const v = Math.floor((avail - 17 * 5) / 18);
+  setCellSize(Math.max(12, v));
+});
+
+/* ===== 搜索 ===== */
+const search = $('#search');
+const searchCount = $('#search-count');
+let lastQuery = '';
+search.addEventListener('input', () => {
+  const q = search.value.trim().toLowerCase();
+  lastQuery = q;
+  let count = 0, first = null;
+  ELEMENTS.forEach(el => {
+    const cell = cells[el.num];
+    if (!q) {
+      cell.classList.remove('hit', 'dim-search');
+      return;
+    }
+    const hit = String(el.num) === q ||
+      el.sym.toLowerCase().includes(q) ||
+      el.nameEn.toLowerCase().includes(q) ||
+      el.nameZh.includes(q);
+    cell.classList.toggle('hit', hit);
+    cell.classList.toggle('dim-search', !hit);
+    if (hit) { count++; if (!first) first = cell; }
+  });
+  searchCount.textContent = q ? count + ' 个匹配' : '';
+  if (first) scrollToCell(first, false);
+});
+
+/* ===== 滚动到元素 ===== */
+function scrollToCell(cell, vertical) {
+  const targetLeft = cell.offsetLeft - wrap.clientWidth / 2 + cell.clientWidth / 2;
+  try {
+    wrap.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+    if (vertical) {
+      const top = cell.offsetTop + wrap.offsetTop - window.innerHeight / 2;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
+  } catch (e) {
+    wrap.scrollLeft = Math.max(0, targetLeft);
+    if (vertical) window.scrollTo(0, Math.max(0, cell.offsetTop - 60));
+  }
+}
+
+/* ===== 详情弹窗 ===== */
+const modal = $('#modal');
+function openDetail(num) {
+  const target = Math.max(1, Math.min(118, num));
+  if (location.hash !== '#/el/' + target) {
+    history.replaceState ? history.replaceState(null, '', '#/el/' + target) : (location.hash = '#/el/' + target);
+  }
+  renderModal(target);
+  if (!modal.open) modal.showModal();
+}
+function renderModal(num) {
+  const el = ELEMENTS[num - 1];
+  const cat = CATS[el.cat];
+  $('#m-cat-tag').style.setProperty('--c', cat.color);
+  $('#m-cat-name').textContent = cat.name;
+  $('#m-sym').textContent = el.sym;
+  $('#m-sym').style.setProperty('--c', cat.color);
+  $('#m-name').innerHTML = '<span class="zh">' + el.nameZh + '</span><span class="en">' + el.nameEn + '</span>';
+  $('#m-num').textContent = el.num;
+  $('#m-mass').textContent = el.mass;
+  $('#m-conf').innerHTML = el.econfig.map(v => '<span class="conf-num">' + v + '</span>').join(' &nbsp; ');
+  const period = el.row <= 7 ? el.row : (el.row === 9 ? 6 : 7);
+  const group = el.row <= 7 ? (GROUP_ZH[el.col] || el.col) : '镧系/锕系';
+  $('#m-period').textContent = '第 ' + period + ' 周期 · 第 ' + group + ' 族';
+  buildAtom(el);
+}
+function buildAtom(el) {
+  const box = $('#atom-box');
+  box.innerHTML = '';
+  box.style.setProperty('--c', CATS[el.cat].color);
+  const size = 240;
+  const n = el.econfig.length;
+  // 原子核
+  const nucleus = document.createElement('div');
+  nucleus.className = 'nucleus';
+  nucleus.textContent = el.num;
+  box.appendChild(nucleus);
+  // 各电子层
+  el.econfig.forEach((cnt, i) => {
+    const frac = n === 1 ? 0.34 : (0.16 + i * (0.40 - 0.16) / (n - 1));
+    const d = Math.max(24, size * (1 - 2 * frac));
+    const orbit = document.createElement('div');
+    orbit.className = 'orbit';
+    orbit.style.width = d + 'px';
+    orbit.style.height = d + 'px';
+    orbit.style.left = (size - d) / 2 + 'px';
+    orbit.style.top = (size - d) / 2 + 'px';
+    orbit.style.animationDuration = (16 + i * 10) + 's';
+    const r = d / 2;
+    for (let e = 0; e < cnt; e++) {
+      const dot = document.createElement('i');
+      dot.className = 'electron';
+      const ang = e * (360 / cnt);
+      dot.style.transform = 'rotate(' + ang + 'deg) translateX(' + (r - 4) + 'px)';
+      orbit.appendChild(dot);
+    }
+    box.appendChild(orbit);
+  });
+}
+$('#m-close').addEventListener('click', () => { modal.close(); clearHash(); });
+modal.addEventListener('click', (ev) => { if (ev.target === modal) { modal.close(); clearHash(); } });
+$('#m-prev').addEventListener('click', () => {
+  const m = location.hash.match(/#\/el\/(\d+)/);
+  const n = m ? +m[1] : 1;
+  openDetail(Math.max(1, n - 1));
+});
+$('#m-next').addEventListener('click', () => {
+  const m = location.hash.match(/#\/el\/(\d+)/);
+  const n = m ? +m[1] : 1;
+  openDetail(Math.min(118, n + 1));
+});
+function clearHash() {
+  if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
+  else location.hash = '';
+}
+window.addEventListener('hashchange', () => {
+  const m = location.hash.match(/^#\/el\/(\d+)$/);
+  if (m) { renderModal(+m[1]); if (!modal.open) modal.showModal(); }
+});
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.open) clearHash(); });
+
+/* ===== 初始化 ===== */
+function init() {
+  buildTable();
+  buildLegend();
+  // 初始格宽按视口自适应（桌面铺满，移动端保留可读宽度）
+  const desktop = window.innerWidth > 768;
+  cellSize = desktop ? 58 : 46;
+  document.documentElement.style.setProperty('--cell', cellSize + 'px');
+  if (desktop) {
+    const avail = wrap.clientWidth;
+    const fit = Math.floor((avail - 17 * 5) / 18);
+    if (fit < cellSize) setCellSize(Math.max(12, fit));
+  }
+  // 恢复 hash 选中的元素
+  const m = location.hash.match(/^#\/el\/(\d+)$/);
+  if (m) { renderModal(+m[1]); modal.showModal(); }
+}
+init();
+</script>
+</body>
+</html>
