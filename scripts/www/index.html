@@ -8,9 +8,9 @@
   :root {
     --cyan:    #00f0ff;
     --magenta: #ff2fd6;
-    --purple:  #a855f7;
     --green:   #39ff14;
     --yellow:  #ffe600;
+    --purple:  #a855f7;
     --bg:      #05060f;
     --bg-2:    #0b0d1a;
     --text:    #e6f7ff;
@@ -18,6 +18,8 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
 
   body {
     min-height: 100vh;
@@ -31,7 +33,6 @@
     position: relative;
   }
 
-  /* ===== 赛博网格背景 ===== */
   body::before {
     content: "";
     position: fixed;
@@ -49,11 +50,11 @@
     position: relative;
     z-index: 1;
     text-align: center;
-    padding: 64px 20px 20px;
+    padding: 48px 20px 16px;
   }
 
   h1 {
-    font-size: clamp(32px, 6vw, 54px);
+    font-size: clamp(32px, 6vw, 52px);
     font-weight: 800;
     letter-spacing: 8px;
     background: linear-gradient(90deg, var(--cyan), var(--purple), var(--magenta));
@@ -61,132 +62,373 @@
     background-clip: text;
     color: transparent;
     filter: drop-shadow(0 0 18px rgba(0,240,255,.45));
-    text-transform: uppercase;
   }
 
   header p {
-    margin-top: 12px;
+    margin-top: 10px;
     color: var(--muted);
-    font-size: 15px;
+    font-size: 14px;
     letter-spacing: 3px;
   }
 
-  /* ===== 分割线 ===== */
   .divider {
     position: relative;
     z-index: 1;
     width: min(640px, 80%);
     height: 2px;
-    margin: 28px auto 0;
+    margin: 22px auto 0;
     background: linear-gradient(90deg, transparent, var(--cyan), var(--magenta), transparent);
     box-shadow: 0 0 12px rgba(0,240,255,.6);
   }
 
-  /* ===== 卡片网格 ===== */
+  /* ===== 工具栏：搜索 + 分类导航 + 添加 ===== */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(5,6,15,.82);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0,240,255,.15);
+    padding: 14px 16px;
+  }
+
+  .toolbar-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .search-box {
+    flex: 1 1 240px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: rgba(11,13,26,.9);
+    border: 1px solid rgba(0,240,255,.4);
+    border-radius: 10px;
+    color: var(--muted);
+  }
+
+  .search-box input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .search-box input::placeholder { color: var(--muted); }
+
+  .cat-nav { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .cat-nav a {
+    text-decoration: none;
+    color: var(--text);
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,.18);
+    background: rgba(11,13,26,.8);
+    transition: all .2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cat-nav a:hover { transform: translateY(-2px); }
+  .cat-nav a .cnt {
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 20px;
+    background: rgba(255,255,255,.12);
+  }
+
+  .cat-nav a.phy { border-color: rgba(0,240,255,.5); }
+  .cat-nav a.phy:hover { box-shadow: 0 4px 16px rgba(0,240,255,.35); }
+  .cat-nav a.math { border-color: rgba(255,47,214,.5); }
+  .cat-nav a.math:hover { box-shadow: 0 4px 16px rgba(255,47,214,.35); }
+  .cat-nav a.bio { border-color: rgba(57,255,20,.45); }
+  .cat-nav a.bio:hover { box-shadow: 0 4px 16px rgba(57,255,20,.3); }
+
+  /* 添加按钮 */
+  .btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    font-size: 13px;
+    color: #001018;
+    font-weight: 700;
+    background: var(--cyan);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 14px rgba(0,240,255,.5);
+    transition: all .2s;
+  }
+  .btn-add:hover { transform: translateY(-2px); box-shadow: 0 0 22px rgba(0,240,255,.8); }
+
+  /* ===== 主体 ===== */
   main {
     position: relative;
     z-index: 1;
-    max-width: 960px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 48px 20px 80px;
+    padding: 28px 16px 60px;
+  }
+
+  .section { margin-bottom: 34px; }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+
+  .section-head .tag {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    padding: 4px 18px;
+    border-radius: 8px;
+  }
+  .section-head .meta { font-size: 13px; color: var(--muted); letter-spacing: 1px; }
+
+  .section.phy .tag { color: #001018; background: var(--cyan);    box-shadow: 0 0 18px rgba(0,240,255,.55); }
+  .section.math .tag { color: #200014; background: var(--magenta); box-shadow: 0 0 18px rgba(255,47,214,.5); }
+  .section.bio .tag { color: #041400; background: var(--green);   box-shadow: 0 0 18px rgba(57,255,20,.45); }
+
+  /* ===== 紧凑链接网格 ===== */
+  .tool-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 28px;
+    grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+    gap: 10px;
   }
 
   .tool-card {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 14px;
-    padding: 36px 24px;
-    min-height: 190px;
+    gap: 10px;
+    padding: 9px 12px;
+    min-height: 44px;
     text-decoration: none;
-    text-align: center;
     color: var(--text);
-    background: rgba(11, 13, 26, .72);
-    border: 1px solid rgba(0,240,255,.35);
-    border-radius: 16px;
-    backdrop-filter: blur(6px);
-    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    background: rgba(11,13,26,.72);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px;
+    transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
+    cursor: pointer;
+    user-select: none;
   }
 
-  /* 角标发光点 */
-  .tool-card::after {
-    content: "";
-    position: absolute;
-    top: -40%;
-    left: -40%;
-    width: 60%;
-    height: 120%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
-    transform: rotate(25deg) translateX(-200%);
-    transition: transform .6s ease;
-  }
+  .tool-card:hover { transform: translateY(-3px); background: rgba(16,19,34,.9); }
 
-  .tool-card:hover::after { transform: rotate(25deg) translateX(320%); }
-
-  .tool-card:hover {
-    transform: translateY(-6px);
-  }
-
-  /* 每种工具独立的霓虹配色 */
-  .tool-card.c1 { border-color: rgba(0,240,255,.6); }
-  .tool-card.c1:hover { box-shadow: 0 10px 40px rgba(0,240,255,.35); }
-
-  .tool-card.c2 { border-color: rgba(255,47,214,.6); }
-  .tool-card.c2:hover { box-shadow: 0 10px 40px rgba(255,47,214,.35); }
-
-  .tool-card.c3 { border-color: rgba(57,255,20,.55); }
-  .tool-card.c3:hover { box-shadow: 0 10px 40px rgba(57,255,20,.3); }
-
-  .tool-card.c4 { border-color: rgba(255,230,0,.55); }
-  .tool-card.c4:hover { box-shadow: 0 10px 40px rgba(255,230,0,.3); }
-
-  /* 图标 */
-  .icon {
-    width: 56px;
-    height: 56px;
+  .tool-card .icon {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
-    border-radius: 14px;
+    font-size: 16px;
+    border-radius: 8px;
     background: rgba(255,255,255,.06);
   }
-  .c1 .icon { color: var(--cyan);    box-shadow: 0 0 16px rgba(0,240,255,.4);    border: 1px solid rgba(0,240,255,.4); }
-  .c2 .icon { color: var(--magenta); box-shadow: 0 0 16px rgba(255,47,214,.4);   border: 1px solid rgba(255,47,214,.4); }
-  .c3 .icon { color: var(--green);   box-shadow: 0 0 16px rgba(57,255,20,.35);   border: 1px solid rgba(57,255,20,.35); }
-  .c4 .icon { color: var(--yellow);  box-shadow: 0 0 16px rgba(255,230,0,.35);   border: 1px solid rgba(255,230,0,.35); }
 
   .tool-card .name {
-    font-size: 19px;
-    font-weight: 700;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .section.phy .tool-card:hover  { border-color: rgba(0,240,255,.6);  box-shadow: 0 6px 20px rgba(0,240,255,.25); }
+  .section.math .tool-card:hover { border-color: rgba(255,47,214,.6); box-shadow: 0 6px 20px rgba(255,47,214,.25); }
+  .section.bio .tool-card:hover  { border-color: rgba(57,255,20,.55); box-shadow: 0 6px 20px rgba(57,255,20,.22); }
+
+  /* ===== 长按放大 + 简介气泡 ===== */
+  .tool-card.long-press {
+    transform: scale(1.12);
+    z-index: 20;
+    background: rgba(16,19,34,.96);
+    border-color: var(--purple);
+    box-shadow: 0 10px 30px rgba(168,85,247,.4);
+  }
+
+  .tool-card .desc-popup {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) scale(.9);
+    width: max-content;
+    max-width: 260px;
+    background: rgba(10,12,24,.97);
+    border: 1px solid var(--purple);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text);
+    opacity: 0;
+    pointer-events: none;
+    transition: all .15s;
+    z-index: 30;
+    box-shadow: 0 8px 24px rgba(0,0,0,.55);
+  }
+  .tool-card.long-press .desc-popup { opacity: 1; transform: translateX(-50%) scale(1); }
+
+  /* ===== 自定义卡片 ===== */
+  .tool-card.custom {
+    border-style: dashed;
+    border-color: rgba(255,255,255,.3);
+    background: rgba(20,24,40,.72);
+  }
+  .tool-card.custom .del {
+    display: block;
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255,77,79,.85);
+    color: #fff;
+    font-size: 13px;
+    line-height: 24px;
+    text-align: center;
+    z-index: 5;
+    box-shadow: 0 0 8px rgba(255,77,79,.6);
+    opacity: .55;
+    transition: opacity .2s;
+  }
+  .tool-card.custom:hover .del { opacity: 1; background: #ff4d4f; }
+
+  /* ===== 模态框 ===== */
+  .modal-mask {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,.65);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-mask.show { display: flex; }
+
+  .modal {
+    width: min(440px, 100%);
+    background: linear-gradient(160deg, rgba(20,24,42,.98), rgba(8,10,20,.98));
+    border: 1px solid rgba(0,240,255,.4);
+    border-radius: 16px;
+    padding: 26px;
+    box-shadow: 0 0 40px rgba(0,240,255,.25);
+  }
+
+  .modal h2 {
+    font-size: 20px;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .modal label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin: 14px 0 6px;
     letter-spacing: 1px;
   }
 
-  .tool-card .sub {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    text-transform: uppercase;
+  .modal input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(11,13,26,.9);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
   }
+  .modal input:focus { border-color: var(--cyan); }
 
-  /* ===== 页脚 ===== */
+  .cat-select { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .cat-select label {
+    flex: 1;
+    text-align: center;
+    margin: 0;
+    padding: 9px 0;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,.2);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+    transition: all .2s;
+  }
+  .cat-select input { display: none; }
+  .cat-select label.pick-phy { border-color: rgba(0,240,255,.4); }
+  .cat-select label.pick-math { border-color: rgba(255,47,214,.4); }
+  .cat-select label.pick-bio { border-color: rgba(57,255,20,.35); }
+  .cat-select input:checked + label.pick-phy  { background: rgba(0,240,255,.2);  box-shadow: 0 0 12px rgba(0,240,255,.4); }
+  .cat-select input:checked + label.pick-math { background: rgba(255,47,214,.2); box-shadow: 0 0 12px rgba(255,47,214,.4); }
+  .cat-select input:checked + label.pick-bio  { background: rgba(57,255,20,.15); box-shadow: 0 0 12px rgba(57,255,20,.3); }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .modal-actions button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    transition: all .2s;
+  }
+  .btn-save { background: var(--cyan); color: #001018; font-weight: 700; }
+  .btn-save:hover { box-shadow: 0 0 16px rgba(0,240,255,.7); }
+  .btn-cancel { background: rgba(255,255,255,.1); color: var(--text); }
+  .btn-cancel:hover { background: rgba(255,255,255,.18); }
+
+  /* ===== 搜索隐藏 / 空结果 ===== */
+  .tool-card.hidden { display: none; }
+  .no-result {
+    display: none;
+    text-align: center;
+    color: var(--muted);
+    padding: 40px 0;
+    font-size: 15px;
+    letter-spacing: 2px;
+  }
+  .no-result.show { display: block; }
+
   footer {
     position: relative;
     z-index: 1;
     text-align: center;
-    padding: 24px;
+    padding: 22px;
     color: var(--muted);
     font-size: 12px;
     letter-spacing: 3px;
     border-top: 1px solid rgba(0,240,255,.15);
   }
-
   footer .blink { color: var(--cyan); animation: blink 1.6s infinite; }
   @keyframes blink { 0%,100% {opacity:1} 50% {opacity:.25} }
 </style>
@@ -199,39 +441,307 @@
 </header>
 <div class="divider"></div>
 
+<!-- 工具栏 -->
+<div class="toolbar">
+  <div class="toolbar-inner">
+    <div class="search-box">
+      <span>🔍</span>
+      <input id="searchInput" type="text" placeholder="搜索工具名称…">
+    </div>
+    <nav class="cat-nav">
+      <a class="phy" href="#sec-phy">⚡ 物理 <span class="cnt" id="cnt-phy"></span></a>
+      <a class="math" href="#sec-math">📈 数学 <span class="cnt" id="cnt-math"></span></a>
+      <a class="bio" href="#sec-bio">🧬 化学和生物 <span class="cnt" id="cnt-bio"></span></a>
+    </nav>
+    <button class="btn-add" id="btnOpenAdd">＋ 添加工具</button>
+  </div>
+</div>
+
 <main>
-  <!-- 电路搭建工具 -->
-  <a class="tool-card c1" href="circuit-construction-kit-ac_zh_CN.html">
-    <div class="icon">⚡</div>
-    <div class="name">电路搭建工具</div>
-    <div class="sub">Circuit · 交流电路</div>
-  </a>
 
-  <!-- 二次函数图像 -->
-  <a class="tool-card c2" href="二次函数图像graphing-quadratics_zh_CN.html">
-    <div class="icon">📈</div>
-    <div class="name">二次函数图像</div>
-    <div class="sub">Quadratic · 函数图像</div>
-  </a>
+  <!-- ==================== 物理 ==================== -->
+  <section id="sec-phy" class="section phy">
+    <div class="section-head">
+      <div class="tag">⚡ 物理</div>
+      <div class="meta">PHYSICS · 电学 / 力学 / 光学 / 热学</div>
+    </div>
+    <div class="tool-grid">
+      <a class="tool-card" href="circuit-construction-kit-ac_zh_CN.html" data-desc="搭建交流电路，观察电流、电压的变化规律"><div class="icon">⚡</div><div class="name">电路搭建工具（交流）</div><span class="desc-popup">搭建交流电路，观察电流、电压的变化规律</span></a>
+      <a class="tool-card" href="交流虚拟实验室circuit-construction-kit-ac-virtual-lab_zh_CN.html" data-desc="交流电路的虚拟实验环境，自由搭建验证"><div class="icon">🔌</div><div class="name">交流虚拟实验室</div><span class="desc-popup">交流电路的虚拟实验环境，自由搭建验证</span></a>
+      <a class="tool-card" href="circuit-construction-kit-dc_zh_CN.html" data-desc="搭建直流电路，学习串并联与电流走向"><div class="icon">🔋</div><div class="name">直流电路搭建</div><span class="desc-popup">搭建直流电路，学习串并联与电流走向</span></a>
+      <a class="tool-card" href="circuit-construction-kit-dc-virtual-lab_zh_CN.html" data-desc="直流电路的虚拟实验环境"><div class="icon">🖥️</div><div class="name">直流电路虚拟实验室</div><span class="desc-popup">直流电路的虚拟实验环境</span></a>
+      <a class="tool-card" href="ohms-law_zh_CN.html" data-desc="探究电压、电流与电阻三者之间的关系"><div class="icon">⚖️</div><div class="name">欧姆定律</div><span class="desc-popup">探究电压、电流与电阻三者之间的关系</span></a>
+      <a class="tool-card" href="resistance-in-a-wire_zh_CN.html" data-desc="观察导线长度、粗细对电阻的影响"><div class="icon">🧵</div><div class="name">导线电阻</div><span class="desc-popup">观察导线长度、粗细对电阻的影响</span></a>
+      <a class="tool-card" href="capacitor-lab-basics_zh_CN.html" data-desc="探究电容器的充放电特性与电容大小"><div class="icon">🔘</div><div class="name">电容实验室基础</div><span class="desc-popup">探究电容器的充放电特性与电容大小</span></a>
+      <a class="tool-card" href="charges-and-fields_zh_CN.html" data-desc="观察点电荷产生的电场线与场强分布"><div class="icon">🧲</div><div class="name">电荷与电场</div><span class="desc-popup">观察点电荷产生的电场线与场强分布</span></a>
+      <a class="tool-card" href="coulombs-law_zh_CN.html" data-desc="探究两电荷间作用力与距离、电量的关系"><div class="icon">✨</div><div class="name">库仑定律</div><span class="desc-popup">探究两电荷间作用力与距离、电量的关系</span></a>
+      <a class="tool-card" href="faradays-law_zh_CN.html" data-desc="探究磁通量变化如何产生感应电动势"><div class="icon">🌀</div><div class="name">法拉第定律</div><span class="desc-popup">探究磁通量变化如何产生感应电动势</span></a>
+      <a class="tool-card" href="balloons-and-static-electricity_zh_CN.html" data-desc="摩擦起电，观察静电吸引与排斥现象"><div class="icon">🎈</div><div class="name">气球与静电</div><span class="desc-popup">摩擦起电，观察静电吸引与排斥现象</span></a>
+      <a class="tool-card" href="magnet-and-compass_zh_CN.html" data-desc="观察磁场分布与指南针的指向"><div class="icon">🧭</div><div class="name">磁铁与指南针</div><span class="desc-popup">观察磁场分布与指南针的指向</span></a>
+      <a class="tool-card" href="forces-and-motion-basics_zh_CN.html" data-desc="探究力、质量与运动状态变化的关系"><div class="icon">🏃</div><div class="name">力与运动基础</div><span class="desc-popup">探究力、质量与运动状态变化的关系</span></a>
+      <a class="tool-card" href="collision-lab_zh_CN.html" data-desc="探究碰撞中的动量守恒与能量变化"><div class="icon">💥</div><div class="name">碰撞实验室</div><span class="desc-popup">探究碰撞中的动量守恒与能量变化</span></a>
+      <a class="tool-card" href="masses-and-springs_zh_CN.html" data-desc="观察弹簧振动周期与质量的关系"><div class="icon">🪀</div><div class="name">质量与弹簧</div><span class="desc-popup">观察弹簧振动周期与质量的关系</span></a>
+      <a class="tool-card" href="masses-and-springs-basics_zh_CN.html" data-desc="弹簧振子运动的基础实验"><div class="icon">🌀</div><div class="name">质量与弹簧基础</div><span class="desc-popup">弹簧振子运动的基础实验</span></a>
+      <a class="tool-card" href="pendulum-lab_zh_CN.html" data-desc="探究单摆周期与摆长、振幅的关系"><div class="icon">🕰️</div><div class="name">单摆实验室</div><span class="desc-popup">探究单摆周期与摆长、振幅的关系</span></a>
+      <a class="tool-card" href="hookes-law_zh_CN.html" data-desc="探究弹簧弹力与形变量的关系"><div class="icon">📏</div><div class="name">胡克定律</div><span class="desc-popup">探究弹簧弹力与形变量的关系</span></a>
+      <a class="tool-card" href="vector-addition_zh_CN.html" data-desc="可视化矢量的合成与分解"><div class="icon">➡️</div><div class="name">矢量加法</div><span class="desc-popup">可视化矢量的合成与分解</span></a>
+      <a class="tool-card" href="density_zh_CN.html" data-desc="探究质量、体积与密度的关系"><div class="icon">⚗️</div><div class="name">密度</div><span class="desc-popup">探究质量、体积与密度的关系</span></a>
+      <a class="tool-card" href="geometric-optics_zh_CN.html" data-desc="探究光的反射与折射成像规律"><div class="icon">🔍</div><div class="name">几何光学</div><span class="desc-popup">探究光的反射与折射成像规律</span></a>
+      <a class="tool-card" href="color-vision_zh_CN.html" data-desc="探究光的颜色合成与人眼感知"><div class="icon">🌈</div><div class="name">颜色视觉</div><span class="desc-popup">探究光的颜色合成与人眼感知</span></a>
+      <a class="tool-card" href="molecules-and-light_zh_CN.html" data-desc="观察分子如何吸收与发射光"><div class="icon">💡</div><div class="name">分子与光</div><span class="desc-popup">观察分子如何吸收与发射光</span></a>
+      <a class="tool-card" href="wave-interference_zh_CN.html" data-desc="观察水波、声波等的干涉与衍射"><div class="icon">🌊</div><div class="name">波的干涉</div><span class="desc-popup">观察水波、声波等的干涉与衍射</span></a>
+      <a class="tool-card" href="energy-forms-and-changes_zh_CN.html" data-desc="观察能量在不同形式之间相互转化"><div class="icon">🔁</div><div class="name">能量形式与转化</div><span class="desc-popup">观察能量在不同形式之间相互转化</span></a>
+      <a class="tool-card" href="gases-intro_zh_CN.html" data-desc="探索气体的压强、体积与温度关系"><div class="icon">💨</div><div class="name">气体入门</div><span class="desc-popup">探索气体的压强、体积与温度关系</span></a>
+      <a class="tool-card" href="gas-properties_zh_CN.html" data-desc="观察气体粒子运动与压强的关系"><div class="icon">🫧</div><div class="name">气体性质</div><span class="desc-popup">观察气体粒子运动与压强的关系</span></a>
+      <a class="tool-card" href="states-of-matter_zh_CN.html" data-desc="观察固液气三态之间的相互转化"><div class="icon">🧊</div><div class="name">物质状态</div><span class="desc-popup">观察固液气三态之间的相互转化</span></a>
+      <a class="tool-card" href="states-of-matter-basics_zh_CN.html" data-desc="物质三态变化入门实验"><div class="icon">❄️</div><div class="name">物质状态基础</div><span class="desc-popup">物质三态变化入门实验</span></a>
+      <a class="tool-card" href="atomic-interactions_zh_CN.html" data-desc="观察原子之间的相互作用力"><div class="icon">⚛️</div><div class="name">原子相互作用</div><span class="desc-popup">观察原子之间的相互作用力</span></a>
+      <a class="tool-card" href="build-an-atom_zh_CN.html" data-desc="组装原子，学习质子、中子与电子"><div class="icon">🔬</div><div class="name">搭建原子</div><span class="desc-popup">组装原子，学习质子、中子与电子</span></a>
+    </div>
+  </section>
 
-  <!-- 交流虚拟实验室 -->
-  <a class="tool-card c3" href="交流虚拟实验室circuit-construction-kit-ac-virtual-lab_zh_CN.html">
-    <div class="icon">🧪</div>
-    <div class="name">交流虚拟实验室</div>
-    <div class="sub">Virtual Lab · 虚拟实验</div>
-  </a>
+  <!-- ==================== 数学 ==================== -->
+  <section id="sec-math" class="section math">
+    <div class="section-head">
+      <div class="tag">📈 数学</div>
+      <div class="meta">MATH · 函数 / 面积模型 / 数轴 / 比例</div>
+    </div>
+    <div class="tool-grid">
+      <a class="tool-card" href="二次函数图像graphing-quadratics_zh_CN.html" data-desc="调整参数，观察抛物线开口与位置变化"><div class="icon">📈</div><div class="name">二次函数图像</div><span class="desc-popup">调整参数，观察抛物线开口与位置变化</span></a>
+      <a class="tool-card" href="function-builder-basics_zh_CN.html" data-desc="构建函数，理解输入与输出的对应关系"><div class="icon">🛠️</div><div class="name">函数构建器基础</div><span class="desc-popup">构建函数，理解输入与输出的对应关系</span></a>
+      <a class="tool-card" href="graphing-slope-intercept_zh_CN.html" data-desc="理解一次函数 y=kx+b 的图像特征"><div class="icon">📉</div><div class="name">斜率与截距图像</div><span class="desc-popup">理解一次函数 y=kx+b 的图像特征</span></a>
+      <a class="tool-card" href="trig-tour_zh_CN.html" data-desc="探索正弦、余弦等三角函数关系"><div class="icon">📐</div><div class="name">三角函数之旅</div><span class="desc-popup">探索正弦、余弦等三角函数关系</span></a>
+      <a class="tool-card" href="ratio-and-proportion_zh_CN.html" data-desc="理解比例概念与等比关系"><div class="icon">⚖️</div><div class="name">比例与比例关系</div><span class="desc-popup">理解比例概念与等比关系</span></a>
+      <a class="tool-card" href="area-model-introduction_zh_CN.html" data-desc="用面积模型直观理解乘法入门"><div class="icon">🧩</div><div class="name">面积模型·入门</div><span class="desc-popup">用面积模型直观理解乘法入门</span></a>
+      <a class="tool-card" href="area-model-algebra_zh_CN.html" data-desc="用面积模型理解代数式的运算"><div class="icon">🧮</div><div class="name">面积模型·代数</div><span class="desc-popup">用面积模型理解代数式的运算</span></a>
+      <a class="tool-card" href="area-model-decimals_zh_CN.html" data-desc="用面积模型理解小数乘法"><div class="icon">🔟</div><div class="name">面积模型·小数</div><span class="desc-popup">用面积模型理解小数乘法</span></a>
+      <a class="tool-card" href="area-model-multiplication_zh_CN.html" data-desc="用面积模型进行乘法计算"><div class="icon">✖️</div><div class="name">面积模型·乘法</div><span class="desc-popup">用面积模型进行乘法计算</span></a>
+      <a class="tool-card" href="number-line-integers_zh_CN.html" data-desc="在数轴上表示正负整数"><div class="icon">➖</div><div class="name">数轴整数</div><span class="desc-popup">在数轴上表示正负整数</span></a>
+      <a class="tool-card" href="number-line-distance_zh_CN.html" data-desc="计算数轴上两点之间的距离"><div class="icon">📏</div><div class="name">数轴距离</div><span class="desc-popup">计算数轴上两点之间的距离</span></a>
+      <a class="tool-card" href="number-line-operations_zh_CN.html" data-desc="在数轴上直观做加减法运算"><div class="icon">➕</div><div class="name">数轴运算</div><span class="desc-popup">在数轴上直观做加减法运算</span></a>
+    </div>
+  </section>
 
-  <!-- 元素周期表 -->
-  <a class="tool-card c4" href="元素周期表 · PERIODIC TABLE.html">
-    <div class="icon">🧬</div>
-    <div class="name">元素周期表</div>
-    <div class="sub">Periodic Table · 化学</div>
-  </a>
+  <!-- ==================== 化学和生物 ==================== -->
+  <section id="sec-bio" class="section bio">
+    <div class="section-head">
+      <div class="tag">🧬 化学和生物</div>
+      <div class="meta">CHEM &amp; BIO · 化学 / 分子 / 遗传</div>
+    </div>
+    <div class="tool-grid">
+      <a class="tool-card" href="元素周期表 · PERIODIC TABLE.html" data-desc="查询元素性质与周期表规律"><div class="icon">🧬</div><div class="name">元素周期表</div><span class="desc-popup">查询元素性质与周期表规律</span></a>
+      <a class="tool-card" href="molecule-shapes-basics_zh_CN.html" data-desc="观察分子的空间立体构型"><div class="icon">🔷</div><div class="name">分子形状基础</div><span class="desc-popup">观察分子的空间立体构型</span></a>
+      <a class="tool-card" href="acid-base-solutions_zh_CN.html" data-desc="探究酸碱强弱与溶液导电性"><div class="icon">🧪</div><div class="name">酸碱溶液</div><span class="desc-popup">探究酸碱强弱与溶液导电性</span></a>
+      <a class="tool-card" href="molarity_zh_CN.html" data-desc="理解物质的量浓度及其计算"><div class="icon">🧫</div><div class="name">摩尔浓度</div><span class="desc-popup">理解物质的量浓度及其计算</span></a>
+      <a class="tool-card" href="balancing-chemical-equations_zh_CN.html" data-desc="练习并掌握化学方程式配平"><div class="icon">⚗️</div><div class="name">化学方程式配平</div><span class="desc-popup">练习并掌握化学方程式配平</span></a>
+      <a class="tool-card" href="ph-scale_zh_CN.html" data-desc="了解 pH 值与溶液酸碱性的关系"><div class="icon">🌡️</div><div class="name">pH 标度</div><span class="desc-popup">了解 pH 值与溶液酸碱性的关系</span></a>
+      <a class="tool-card" href="gene-expression-essentials_zh_CN.html" data-desc="观察基因表达与蛋白质合成的过程"><div class="icon">🧬</div><div class="name">基因表达基础</div><span class="desc-popup">观察基因表达与蛋白质合成的过程</span></a>
+      <a class="tool-card" href="natural-selection_zh_CN.html" data-desc="模拟自然选择与物种进化的过程"><div class="icon">🐦</div><div class="name">自然选择</div><span class="desc-popup">模拟自然选择与物种进化的过程</span></a>
+    </div>
+  </section>
+
+  <div class="no-result" id="noResult">未找到匹配的工具 🔍</div>
+
 </main>
+
+<!-- ==================== 添加工具模态框 ==================== -->
+<div class="modal-mask" id="addModal">
+  <div class="modal">
+    <h2>＋ 添加工具</h2>
+    <form id="addForm">
+      <label>工具名称 *</label>
+      <input type="text" id="fName" placeholder="例如：电路实验 2" required>
+
+      <label>网页地址 / 文件名 *</label>
+      <input type="text" id="fUrl" placeholder="例如：xxx.html 或 https://example.com" required>
+
+      <label>选择分类 *</label>
+      <div class="cat-select">
+        <input type="radio" name="cat" value="phy" id="catPhy" checked>
+        <label class="pick-phy" for="catPhy">⚡ 物理</label>
+        <input type="radio" name="cat" value="math" id="catMath">
+        <label class="pick-math" for="catMath">📈 数学</label>
+        <input type="radio" name="cat" value="bio" id="catBio">
+        <label class="pick-bio" for="catBio">🧬 化学和生物</label>
+      </div>
+
+      <label>简介（可选，长按时显示）</label>
+      <input type="text" id="fDesc" placeholder="一句话介绍这个工具">
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="btnCancel">取消</button>
+        <button type="submit" class="btn-save">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <footer>
   <span class="blink">⬢</span> 初中工具集 · CYBER NEON <span class="blink">⬢</span>
 </footer>
+
+<script>
+  /* ========== 长按放大 + 显示简介 ========== */
+  let pressTimer = null;
+  let pressedCard = null;
+  const LONG_PRESS_MS = 500;
+
+  function removeLongPress() {
+    document.querySelectorAll('.long-press').forEach(c => c.classList.remove('long-press'));
+    pressedCard = null;
+  }
+
+  document.addEventListener('mousedown', e => {
+    if (e.target.closest('.del')) return; // 删除按钮不触发长按
+    const card = e.target.closest('.tool-card');
+    if (!card) return;
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => {
+      pressedCard = card;
+      card.classList.add('long-press');
+    }, LONG_PRESS_MS);
+  });
+  document.addEventListener('touchstart', e => {
+    if (e.target.closest('.del')) return; // 删除按钮不触发长按
+    const card = e.target.closest('.tool-card');
+    if (!card) return;
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => {
+      pressedCard = card;
+      card.classList.add('long-press');
+    }, LONG_PRESS_MS);
+  }, { passive: true });
+
+  document.addEventListener('mouseup', () => clearTimeout(pressTimer));
+  document.addEventListener('touchend', () => clearTimeout(pressTimer));
+  document.addEventListener('mouseleave', () => { clearTimeout(pressTimer); removeLongPress(); });
+
+  // 长按后本次点击不跳转，并清除长按状态
+  document.addEventListener('click', e => {
+    if (pressedCard && e.target.closest('.tool-card') === pressedCard) {
+      e.preventDefault();
+      removeLongPress();
+    } else if (!e.target.closest('.long-press')) {
+      removeLongPress();
+    }
+  });
+
+  /* ========== 分类数量统计 ========== */
+  function updateCounts() {
+    const count = id => document.querySelectorAll('#' + id + ' .tool-card').length;
+    document.getElementById('cnt-phy').textContent  = count('sec-phy');
+    document.getElementById('cnt-math').textContent = count('sec-math');
+    document.getElementById('cnt-bio').textContent  = count('sec-bio');
+  }
+  updateCounts();
+
+  /* ========== 搜索过滤 ========== */
+  function countVisible(id) {
+    return Array.from(document.querySelectorAll('#' + id + ' .tool-card'))
+      .filter(c => !c.classList.contains('hidden')).length;
+  }
+
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', function () {
+    const kw = this.value.trim().toLowerCase();
+    const cards = document.querySelectorAll('.tool-card');
+    let anyVisible = false;
+
+    cards.forEach(card => {
+      const match = !kw || card.textContent.toLowerCase().includes(kw);
+      card.classList.toggle('hidden', !match);
+      if (match) anyVisible = true;
+    });
+
+    ['sec-phy', 'sec-math', 'sec-bio'].forEach(id => {
+      document.getElementById(id).style.display = countVisible(id) === 0 ? 'none' : '';
+    });
+
+    document.getElementById('noResult').classList.toggle('show', !anyVisible);
+  });
+
+  /* ========== 自定义添加工具（localStorage 持久化） ========== */
+  const STORAGE_KEY = 'toolbox_custom_links';
+
+  function loadCustom() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function saveCustom(list) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function sectionOf(cat) {
+    return cat === 'math' ? 'sec-math' : cat === 'bio' ? 'sec-bio' : 'sec-phy';
+  }
+
+  function renderCustom() {
+    // 清除旧的自定义卡片（避免重复渲染）
+    document.querySelectorAll('.tool-card.custom').forEach(el => el.remove());
+    const list = loadCustom();
+    list.forEach(item => {
+      const a = document.createElement('a');
+      a.className = 'tool-card custom';
+      a.href = item.url;
+      a.dataset.desc = item.desc || '';
+      a.innerHTML =
+        '<div class="icon">🔗</div>' +
+        '<div class="name">' + esc(item.name) + '</div>' +
+        '<span class="desc-popup">' + esc(item.desc || '自定义添加的工具') + '</span>' +
+        '<span class="del" title="删除">✕</span>';
+
+      // 删除（click + pointerdown 双绑定，避免与长按逻辑冲突）
+      const delBtn = a.querySelector('.del');
+      function doDelete(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const list2 = loadCustom().filter(x => x.id !== item.id);
+        saveCustom(list2);
+        a.remove();
+        updateCounts();
+      }
+      delBtn.addEventListener('click', doDelete);
+      delBtn.addEventListener('pointerdown', doDelete);
+
+      document.querySelector('#' + sectionOf(item.cat) + ' .tool-grid').appendChild(a);
+    });
+    updateCounts();
+  }
+  renderCustom();
+
+  /* ===== 模态框 ===== */
+  const modal = document.getElementById('addModal');
+  const btnOpen = document.getElementById('btnOpenAdd');
+
+  btnOpen.addEventListener('click', () => modal.classList.add('show'));
+  document.getElementById('btnCancel').addEventListener('click', () => modal.classList.remove('show'));
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('show'); });
+
+  document.getElementById('addForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('fName').value.trim();
+    const url  = document.getElementById('fUrl').value.trim();
+    if (!name || !url) return;
+    const cat = document.querySelector('input[name="cat"]:checked').value;
+    const desc = document.getElementById('fDesc').value.trim();
+
+    const list = loadCustom();
+    list.push({ id: 'c' + Date.now(), name, url, cat, desc });
+    saveCustom(list);
+
+    // 清空并关闭
+    e.target.reset();
+    document.querySelector('input[name="cat"][value="phy"]').checked = true;
+    modal.classList.remove('show');
+
+    renderCustom();
+  });
+</script>
 
 </body>
 </html>
